@@ -1,0 +1,5 @@
+*.ipynb
+*.bin
+*.psd
+__pycache__
+psd/res
