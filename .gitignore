@@ -3,3 +3,4 @@
 *.psd
 __pycache__
 psd/res
+test.py

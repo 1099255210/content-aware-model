@@ -18,6 +18,9 @@ def multiModalEmbedding(
   verbose = False
 ):
   
+  '''
+  image paths, keyword list, category, text ratio, image ratio -> 128d
+  '''
 
   img_vec = image_encode(path_list, verbose=verbose)
   text_vec = w2v_encode(word_list, verbose=verbose)
@@ -36,4 +39,4 @@ if __name__ == '__main__':
   t_ratio = 0.53
   i_ratio = 0.11
   
-  print(multiModalEmbedding(path_list, word_list, cate, t_ratio, i_ratio, verbose=True))
+  multiModalEmbedding(path_list, word_list, cate, t_ratio, i_ratio, verbose=True)
