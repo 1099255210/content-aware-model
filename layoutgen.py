@@ -25,13 +25,13 @@ class LGN(nn.Module):
     # Layout Generator
     self.fc_1 = nn.Linear(in_features=256, out_features=8192)
     self.bn_5 = nn.BatchNorm1d(4)
-    self.dc_1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(5, 5), stride=(2, 2))
+    self.dc_1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     self.bn_6 = nn.BatchNorm1d(8)
-    self.dc_2 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(5, 5), stride=(2, 2))
+    self.dc_2 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     self.bn_7 = nn.BatchNorm1d(16)
-    self.dc_3 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=(5, 5), stride=(2, 2))
+    self.dc_3 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     self.bn_8 = nn.BatchNorm1d(32)
-    self.dc_4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=(5, 5), stride=(2, 2))
+    self.dc_4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     self.relu = nn.ReLU()
     self.tanh = nn.Tanh()
     
@@ -49,9 +49,8 @@ class LGN(nn.Module):
     
   def encoder(self, x, y):
     '''
-    In: 64*64*3, out: 128, 128
+    In: 64*64*3, 128, out: 128, 128
     '''
-    x = self.pad_1(x)
     x = self.c_1(x)
     x = self.leakyrelu(x)
     x = self.c_2(x)
@@ -72,14 +71,14 @@ class LGN(nn.Module):
     out_2 = out_2.squeeze(1).squeeze(1)
     return out_1, out_2
     
+    
   def generator(self, z, y):
     '''
     In: 128, 128, out: 64*64*3
     '''
-    x = torch.cat(z, y, dim=0)
+    x = torch.cat((z, y), dim=0)
     x = self.fc_1(x)
-    x = x.reshape(4, 4, 512)
-    print(x.shape)
+    x = x.reshape(512, 4, 4)
     x = self.bn_5(x)
     x = self.dc_1(x)
     x = self.bn_6(x)
@@ -87,7 +86,7 @@ class LGN(nn.Module):
     x = self.dc_2(x)
     x = self.bn_7(x)
     x = self.relu(x)
-    x = self.dc_3(x)
+    x = self.dc_3(x)    
     x = self.bn_8(x)
     x = self.relu(x)
     x = self.dc_4(x)
@@ -99,8 +98,10 @@ class LGN(nn.Module):
     '''
     In: 64*64*3, 128, 128, out: 1
     '''
+    
+    y = y.unsqueeze(1).unsqueeze(1)
     y = y.repeat(1, 64, 64)
-    x = torch.cat(x, y)
+    x = torch.cat((x, y))
     x = self.c_7(x)
     x = self.leakyrelu(x)
     x = self.c_8(x)
@@ -113,16 +114,20 @@ class LGN(nn.Module):
     x = self.bn_11(x)
     x = self.leakyrelu(x)
     x = self.c_11(x)
-    x = torch.cat(x, z, dim=0)
+    x = x.squeeze(1).squeeze(1)
+    x = torch.cat((x, z), dim=0)
     x = self.fc_2(x)
     x = self.leakyrelu(x)
     return x
     
   
   
-  def forward(self, x, y):
-    
-    return x
+  def forward(self, x, y, z):
+    x = self.pad_1(x)
+    out_1, out_2 = self.encoder(x, y)
+    out_3 = self.generator(z, y)
+    out_4 = self.discriminator(x, z, y)
+    return out_4
   
   
 if __name__ == '__main__':
@@ -130,5 +135,5 @@ if __name__ == '__main__':
   y = torch.rand((128))
   z = torch.rand((128))
   NN = LGN()
-  out = NN(x, y)
+  out = NN(x, y, z)
   print(out.shape)
