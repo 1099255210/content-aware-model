@@ -8,9 +8,9 @@ t_ratio_seg = 7
 i_ratio_seg = 10
 
 
-class attrNN(nn.Module):
+class AttrNN(nn.Module):
   def __init__(self):
-    super(attrNN, self).__init__()
+    super(AttrNN, self).__init__()
     self.cate_nn = nn.Sequential(nn.Linear(60, 48))
     self.text_ratio_nn = nn.Sequential(nn.Linear(70, 48))
     self.image_ratio_nn = nn.Sequential(nn.Linear(100, 48))
@@ -39,7 +39,7 @@ def attr_encode(cate: str, t_ratio: float, i_ratio: float, verbose=False) -> tor
   t_ratio_vec = farray(t_ratio_vec)
   i_ratio_vec = farray(i_ratio_vec)
   
-  model = attrNN().to(device)
+  model = AttrNN().to(device)
   ret_vec = model(cate_vec, t_ratio_vec, i_ratio_vec)
   if verbose:
     print('---------------- Attr2vec result ----------------')

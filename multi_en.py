@@ -1,12 +1,13 @@
 from typing import List
+import torch
 
 '''
-Self Created Functions
+Self Created Imports
 '''
-from mattr import attr_encode
-from mvgg import image_encode
-from mw2v import w2v_encode
-from fusion import fusion
+from utils.mattr import attr_encode
+from utils.mvgg import image_encode
+from utils.mw2v import w2v_encode
+from utils.fusion import fusion
 
 
 def multiModalEmbedding(
@@ -16,7 +17,7 @@ def multiModalEmbedding(
   t_ratio: float,
   i_ratio: float,
   verbose = False
-):
+) -> torch.Tensor:
   
   '''
   image paths, keyword list, category, text ratio, image ratio -> 128d
@@ -27,16 +28,20 @@ def multiModalEmbedding(
   attr_vec = attr_encode(cate, t_ratio, i_ratio, verbose=verbose)
 
   res = fusion(img_vec, text_vec, attr_vec, verbose=verbose)
+  
+  print(res.shape)
   return res
 
 
 if __name__ == '__main__':
   
-  # Example
+  # Data Example
   path_list = ['./assets/turtle.png', './assets/food.png']
   word_list = ['apple', 'technology', 'computer', 'simple']
   cate = 'food'
   t_ratio = 0.53
   i_ratio = 0.11
   
-  multiModalEmbedding(path_list, word_list, cate, t_ratio, i_ratio, verbose=True)
+  multiModalEmbedding(path_list, word_list, cate, t_ratio, i_ratio, verbose=False)
+  multiModalEmbedding(path_list, word_list, cate, t_ratio, i_ratio, verbose=False)
+  multiModalEmbedding(path_list, word_list, cate, t_ratio, i_ratio, verbose=False)

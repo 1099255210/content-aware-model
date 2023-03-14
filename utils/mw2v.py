@@ -5,10 +5,12 @@ import numpy as np
 from typing import List
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+modelpath = './models/GoogleNews-vectors-negative300.bin'
+model = gensim.models.KeyedVectors.load_word2vec_format(modelpath, binary=True)
 
-class w2vNN(nn.Module):
+class W2vNN(nn.Module):
   def __init__(self):
-    super(w2vNN, self).__init__()
+    super(W2vNN, self).__init__()
     self.fc = nn.Sequential(
       nn.Linear(300, 256),
       nn.ReLU(),
@@ -23,7 +25,6 @@ class w2vNN(nn.Module):
     
 def w2v_encode(
   word_list: List[str],
-  modelpath = './models/GoogleNews-vectors-negative300.bin',
   verbose = False,
 ) -> torch.Tensor:
   
@@ -31,7 +32,6 @@ def w2v_encode(
   Word list -> n * 300d -> 300d -> 128d
   '''
   
-  model = gensim.models.KeyedVectors.load_word2vec_format(modelpath, binary=True)
   vec_list = np.empty(shape=(len(word_list), 300), dtype=float)
   for idx, word in enumerate(word_list):
     vec_list[idx] = model.get_vector(word)
@@ -39,7 +39,7 @@ def w2v_encode(
   sum_vec = np.sum(vec_list, axis=0)
   sum_vec = torch.from_numpy(sum_vec).to(torch.float32).to(device)
 
-  w2vmodel = w2vNN().to(device)
+  w2vmodel = W2vNN().to(device)
   ret_vec = w2vmodel(sum_vec)
   if verbose:
     print('---------------- Word2vec result ----------------')

@@ -9,9 +9,9 @@ from typing import List
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-class imgNN(nn.Module):
+class ImgNN(nn.Module):
   def __init__(self, originalModel):
-    super(imgNN, self).__init__()
+    super(ImgNN, self).__init__()
     self.features = nn.Sequential(*list(originalModel.features.children())[:-1])
     self.avgpool = nn.AdaptiveAvgPool2d(output_size = (1, 1))
     self.classifier = nn.Sequential(
@@ -44,7 +44,7 @@ def image_encode(path: List[str], verbose=False) -> torch.Tensor:
   '''
   
   vgg16_pretrained = torchvision.models.vgg16(weights = VGG16_Weights.DEFAULT)
-  model = imgNN(vgg16_pretrained).to(device)
+  model = ImgNN(vgg16_pretrained).to(device)
   ret_vec = model(path)
   if verbose:
     print('---------------- Img2vec  result ----------------')
@@ -54,6 +54,11 @@ def image_encode(path: List[str], verbose=False) -> torch.Tensor:
     print('---------------- Img2vec  resend ----------------')
   return ret_vec
 
+
+'''
+These commented code is for extracting feature map.
+这些被注释的代码是用来查看网络中间生成的特征图的
+'''
 
 # class HookTool:
 #   def __init__(self) -> None:

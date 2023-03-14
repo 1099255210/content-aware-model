@@ -3,9 +3,9 @@ import torch.nn as nn
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-class fuseNN(nn.Module):
+class FuseNN(nn.Module):
   def __init__(self):
-    super(fuseNN, self).__init__()
+    super(FuseNN, self).__init__()
     self.fc = nn.Sequential(
       nn.Linear(288, 256),
       nn.ReLU(),
@@ -18,8 +18,12 @@ class fuseNN(nn.Module):
   
 
 def fusion(img_vec:torch.Tensor, text_vec:torch.Tensor, attr_vec:torch.Tensor, verbose=False) -> torch.Tensor:
+  '''
+  128d + 128d + 32d = 128d
+  '''
+  
   x = torch.cat((img_vec, text_vec, attr_vec), dim=0)
-  model = fuseNN().to(device)
+  model = FuseNN().to(device)
   ret_vec = model(x)
   
   if verbose:

@@ -25,7 +25,7 @@ class LGN(nn.Module):
     # Layout Generator
     self.fc_1 = nn.Linear(in_features=256, out_features=8192)
     self.bn_5 = nn.BatchNorm1d(4)
-    self.dc_1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+    self.dc_1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0))
     self.bn_6 = nn.BatchNorm1d(8)
     self.dc_2 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     self.bn_7 = nn.BatchNorm1d(16)
@@ -53,18 +53,23 @@ class LGN(nn.Module):
     '''
     x = self.c_1(x)
     x = self.leakyrelu(x)
+    
     x = self.c_2(x)
     x = self.bn_2(x)
     x = self.leakyrelu(x)
+    
     x = self.c_3(x)
     x = self.bn_3(x)
     x = self.leakyrelu(x)
+    
     x = self.c_4(x)
     x = self.bn_4(x)
     x = self.leakyrelu(x)
+    
     y = y.unsqueeze(1).unsqueeze(1)
     y = y.repeat(1, 4, 4)
     x = torch.cat((x, y), dim=0)
+    
     out_1 = self.c_5(x)
     out_2 = self.c_6(x)
     out_1 = out_1.squeeze(1).squeeze(1)
@@ -77,18 +82,23 @@ class LGN(nn.Module):
     In: 128, 128, out: 64*64*3
     '''
     x = torch.cat((z, y), dim=0)
+    
     x = self.fc_1(x)
     x = x.reshape(512, 4, 4)
     x = self.bn_5(x)
+    
     x = self.dc_1(x)
     x = self.bn_6(x)
     x = self.relu(x)
+    
     x = self.dc_2(x)
     x = self.bn_7(x)
     x = self.relu(x)
+    
     x = self.dc_3(x)    
     x = self.bn_8(x)
     x = self.relu(x)
+    
     x = self.dc_4(x)
     x = self.tanh(x)
     return x
@@ -102,18 +112,24 @@ class LGN(nn.Module):
     y = y.unsqueeze(1).unsqueeze(1)
     y = y.repeat(1, 64, 64)
     x = torch.cat((x, y))
+    
     x = self.c_7(x)
     x = self.leakyrelu(x)
+    
     x = self.c_8(x)
     x = self.bn_9(x)
     x = self.leakyrelu(x)
+    
     x = self.c_9(x)
     x = self.bn_10(x)
     x = self.leakyrelu(x)
+    
     x = self.c_10(x)
     x = self.bn_11(x)
     x = self.leakyrelu(x)
+    
     x = self.c_11(x)
+    
     x = x.squeeze(1).squeeze(1)
     x = torch.cat((x, z), dim=0)
     x = self.fc_2(x)
