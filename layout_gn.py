@@ -8,8 +8,8 @@ class LGN(nn.Module):
     super(LGN, self).__init__()
     
     # Layout Encoder
-    self.pad_1 = nn.ZeroPad2d(padding=(2, 2, 9, 10, 0, 0))
-    self.pad_2 = nn.ZeroPad2d(padding=(2, 2, 9, 10, 0, 0))
+    self.pad_1 = nn.ZeroPad2d(padding=(9, 10, 2, 2, 0, 0))
+    self.pad_2 = nn.ZeroPad2d(padding=(9, 10, 2, 2, 0, 0))
     self.c_1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
     self.c_2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
     self.bn_2 = nn.BatchNorm1d(16)
@@ -143,13 +143,13 @@ class LGN(nn.Module):
     out_1, out_2 = self.encoder(x, y)
     out_3 = self.generator(z, y)
     out_4 = self.discriminator(x, z, y)
-    return out_4
+    return out_1, out_2, out_3, out_4
   
   
 if __name__ == '__main__':
-  x = torch.rand((3, 45, 60))
+  x = torch.rand((3, 60, 45))
   y = torch.rand((128))
   z = torch.rand((128))
   NN = LGN()
   out = NN(x, y, z)
-  print(out.shape)
+  print(out)

@@ -3,6 +3,25 @@ import torch
 import xml.etree.ElementTree as ET
 from torch.utils.data import Dataset
 
+MAGAZINE_TAG = {
+  'text': [0, 0, 1],
+  'image': [0, 1, 0],
+  'headline': [0, 1, 1],
+  'text-over-image': [1, 0, 0],
+  'headline-over-image': [1, 0, 1],
+  'background': [1, 1, 0],
+}
+
+LAYER = {
+  'text-over-image': 2,
+  'headline-over-image': 2,
+  'text': 1,
+  'image': 1,
+  'headline': 1,
+  'background': 0,
+}
+
+
 class MagazineData(Dataset):
   '''
   MagazineData Class.\n
@@ -135,11 +154,46 @@ def read_pt(pt_folder='models', pt_name='multimodal.pt'):
   return data
 
 
+def layout_to_tensor(layout:dict, tag:dict=MAGAZINE_TAG) -> torch.Tensor:
+
+  ret_tensor = torch.zeros((3, 60, 45))
+  layout_sorted = sorted(layout, key=lambda x: LAYER[x['label']])
+
+  for item in layout_sorted:
+    mask = MAGAZINE_TAG[item['label']]
+    bb = [round(px / 5) for px in item['bb']]
+    changed_block_data(tensor=ret_tensor, bb=bb, mask=mask)
+    print(bb)
+  
+  return ret_tensor
+
+
+def changed_block_data(tensor:torch.Tensor, bb:list[int, int], mask:list[int, int]) -> torch.Tensor:
+
+  '''
+  Change 3-channel layout data.
+  '''
+
+  for idx, b in enumerate(mask):
+    for y in range(bb[1], bb[3] + 1):
+      for x in range(bb[0], bb[2] + 1):
+        try:
+          tensor[idx][y][x] = b
+        except:
+          continue
+
+  return tensor
+
+
 if __name__ == '__main__':
 
   root_dir = "dataset"
   magazine_dataset = MagazineData(root_dir, 'annotations', 'images')
-  print(magazine_dataset.from_filename('fashion_0030'))
+  layout = magazine_dataset.from_filename('fashion_0030')['layout']
+  print(layout)
+  tensor = layout_to_tensor(layout=layout)
+  print(tensor)
+
   # stat = 0
   # for item in magazine_dataset:
   #   if item == None:
