@@ -1,6 +1,7 @@
 *.ipynb
 *.bin
 *.psd
+*.pt
 __pycache__
 psd/res
 test.py

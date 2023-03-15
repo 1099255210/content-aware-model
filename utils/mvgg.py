@@ -8,6 +8,7 @@ from PIL import Image
 from typing import List
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+vgg16_pretrained = torchvision.models.vgg16(weights = VGG16_Weights.DEFAULT)
 
 class ImgNN(nn.Module):
   def __init__(self, originalModel):
@@ -35,7 +36,9 @@ class ImgNN(nn.Module):
     res = self.classifier(res)
     res = res.squeeze(0)
     return res
-    
+
+
+model = ImgNN(vgg16_pretrained).to(device)
     
 def image_encode(path: List[str], verbose=False) -> torch.Tensor:
   
@@ -43,9 +46,10 @@ def image_encode(path: List[str], verbose=False) -> torch.Tensor:
   Images path list -> n * 512 * 14 * 14 -> 512 * 14 * 14 -> 512d -> 512d -> 256d -> 128d
   '''
   
-  vgg16_pretrained = torchvision.models.vgg16(weights = VGG16_Weights.DEFAULT)
-  model = ImgNN(vgg16_pretrained).to(device)
-  ret_vec = model(path)
+  if path == []:
+    ret_vec = torch.zeros(128).to(device)
+  else:
+    ret_vec = model(path)
   if verbose:
     print('---------------- Img2vec  result ----------------')
     torch.set_printoptions(threshold=10)

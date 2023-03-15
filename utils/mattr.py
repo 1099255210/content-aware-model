@@ -4,43 +4,43 @@ import numpy as np
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 cate_tag = ['fashion', 'food', 'news', 'science', 'travel', 'wedding']
-t_ratio_seg = 7
-i_ratio_seg = 10
+t_prop_seg = 7
+i_prop_seg = 10
 
 
 class AttrNN(nn.Module):
   def __init__(self):
     super(AttrNN, self).__init__()
     self.cate_nn = nn.Sequential(nn.Linear(60, 48))
-    self.text_ratio_nn = nn.Sequential(nn.Linear(70, 48))
-    self.image_ratio_nn = nn.Sequential(nn.Linear(100, 48))
+    self.text_prop_nn = nn.Sequential(nn.Linear(70, 48))
+    self.image_prop_nn = nn.Sequential(nn.Linear(100, 48))
     self.res_nn = nn.Sequential(nn.Linear(144, 32))
     
-  def forward(self, cate_vec, t_ratio_vec, i_ratio_vec):
+  def forward(self, cate_vec, t_prop_vec, i_prop_vec):
     cate_vec = self.cate_nn(cate_vec)
-    t_ratio_vec = self.text_ratio_nn(t_ratio_vec)
-    i_ratio_vec = self.image_ratio_nn(i_ratio_vec)
-    res = torch.cat((cate_vec, t_ratio_vec, i_ratio_vec), dim=0)
+    t_prop_vec = self.text_prop_nn(t_prop_vec)
+    i_prop_vec = self.image_prop_nn(i_prop_vec)
+    res = torch.cat((cate_vec, t_prop_vec, i_prop_vec), dim=0)
     res = self.res_nn(res)
     return res
     
+model = AttrNN().to(device)
 
-def attr_encode(cate: str, t_ratio: float, i_ratio: float, verbose=False) -> torch.Tensor:
+def attr_encode(cate: str, t_prop: float, i_prop: float, verbose=False) -> torch.Tensor:
   
   '''
   Attributes -> 48d + 48d + 48d = 144d -> 32d
   '''
   
   cate_vec = cate2vec(cate)
-  t_ratio_vec = t_ratio2vec(t_ratio)
-  i_ratio_vec = i_ratio2vec(i_ratio)
+  t_prop_vec = t_prop2vec(t_prop)
+  i_prop_vec = i_prop2vec(i_prop)
 
   cate_vec = farray(cate_vec)
-  t_ratio_vec = farray(t_ratio_vec)
-  i_ratio_vec = farray(i_ratio_vec)
-  
-  model = AttrNN().to(device)
-  ret_vec = model(cate_vec, t_ratio_vec, i_ratio_vec)
+  t_prop_vec = farray(t_prop_vec)
+  i_prop_vec = farray(i_prop_vec)
+
+  ret_vec = model(cate_vec, t_prop_vec, i_prop_vec)
   if verbose:
     print('---------------- Attr2vec result ----------------')
     torch.set_printoptions(threshold=10)
@@ -55,6 +55,11 @@ def farray(array: np.ndarray) -> torch.Tensor:
 
 
 def cate2vec(cate: str) -> np.ndarray:
+  
+  '''
+  Category -> 60d
+  '''
+  
   ret_vec = np.zeros(shape=(len(cate_tag)))
   for idx, tag in enumerate(cate_tag):
     if tag == cate:
@@ -63,19 +68,29 @@ def cate2vec(cate: str) -> np.ndarray:
   return ret_vec
 
 
-def t_ratio2vec(ratio: float) -> np.ndarray:
-  ret_vec = np.zeros(shape=(t_ratio_seg))
-  for idx in range(0, t_ratio_seg):
-    if idx == int(ratio * 10):
+def t_prop2vec(prop: float) -> np.ndarray:
+  
+  '''
+  Text Proportion -> 70d
+  '''
+  
+  ret_vec = np.zeros(shape=(t_prop_seg))
+  for idx in range(0, t_prop_seg):
+    if idx == int(prop * 10):
       ret_vec[idx] = 1
   ret_vec = np.tile(ret_vec, 10)
   return ret_vec
 
 
-def i_ratio2vec(ratio: float) -> np.ndarray:
-  ret_vec = np.zeros(shape=(i_ratio_seg))
-  for idx in range(0, i_ratio_seg):
-    if idx == int(ratio * 10):
+def i_prop2vec(prop: float) -> np.ndarray:
+    
+  '''
+  Image Proportion -> 70d
+  '''
+  
+  ret_vec = np.zeros(shape=(i_prop_seg))
+  for idx in range(0, i_prop_seg):
+    if idx == int(prop * 10):
       ret_vec[idx] = 1
   ret_vec = np.tile(ret_vec, 10)
   return ret_vec
@@ -83,7 +98,7 @@ def i_ratio2vec(ratio: float) -> np.ndarray:
 
 if __name__ == '__main__':
   cate = 'food'
-  t_ratio = 0.53
-  i_ratio = 0.11
+  t_prop = 0.53
+  i_prop = 0.11
 
-  attr_encode(cate, t_ratio, i_ratio, verbose=True)
+  attr_encode(cate, t_prop, i_prop, verbose=True)

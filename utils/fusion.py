@@ -16,6 +16,8 @@ class FuseNN(nn.Module):
     x = self.fc(x)
     return x
   
+  
+model = FuseNN().to(device)
 
 def fusion(img_vec:torch.Tensor, text_vec:torch.Tensor, attr_vec:torch.Tensor, verbose=False) -> torch.Tensor:
   '''
@@ -23,7 +25,6 @@ def fusion(img_vec:torch.Tensor, text_vec:torch.Tensor, attr_vec:torch.Tensor, v
   '''
   
   x = torch.cat((img_vec, text_vec, attr_vec), dim=0)
-  model = FuseNN().to(device)
   ret_vec = model(x)
   
   if verbose:

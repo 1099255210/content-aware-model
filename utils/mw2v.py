@@ -32,9 +32,16 @@ def w2v_encode(
   Word list -> n * 300d -> 300d -> 128d
   '''
   
-  vec_list = np.empty(shape=(len(word_list), 300), dtype=float)
-  for idx, word in enumerate(word_list):
-    vec_list[idx] = model.get_vector(word)
+  if word_list == []:
+    vec_list = np.empty(shape=(1, 300), dtype=float)
+    vec_list[0] = np.zeros(shape=(300), dtype=float)
+  else:
+    vec_list = np.empty(shape=(len(word_list), 300), dtype=float)
+    for idx, word in enumerate(word_list):
+      try:
+        vec_list[idx] = model.get_vector(word)
+      except:
+        ...
     
   sum_vec = np.sum(vec_list, axis=0)
   sum_vec = torch.from_numpy(sum_vec).to(torch.float32).to(device)
@@ -51,5 +58,5 @@ def w2v_encode(
 
 
 if __name__ == '__main__':
-  word_list = ['apple', 'technology', 'computer', 'simple']
+  word_list = ['color']
   w2v_encode(word_list, verbose=True)
