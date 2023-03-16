@@ -82,7 +82,7 @@ def recover_grid_layout_from_label_name(label_name:str, root_dir='dataset', layo
   print(os.path.join(root_dir, layout_folder, f'{label_name}_grid.png'))
   
 
-def recover_grid_layout_from_tensor(tensor:torch.Tensor, root_dir='dataset', layout_folder='layout'):
+def recover_grid_layout_from_tensor(tensor:torch.Tensor, root_dir='dataset', layout_folder='layout', save_name='recover_grid.png'):
   
   '''
   Recover grid layout image from tensor.
@@ -106,8 +106,8 @@ def recover_grid_layout_from_tensor(tensor:torch.Tensor, root_dir='dataset', lay
       block = Image.new('RGBA', (px, py), color)
       img.paste(block, (x * px, y * py))
 
-  img.save(os.path.join(root_dir, layout_folder, 'recover_grid.png'))
-  print(os.path.join(root_dir, layout_folder, 'recover_grid.png'))
+  img.save(os.path.join(root_dir, layout_folder, save_name))
+  print(os.path.join(root_dir, layout_folder, save_name))
   return
 
 

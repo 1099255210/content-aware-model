@@ -25,9 +25,10 @@ class Encoder(nn.Module):
     '''
     In: 64*64*3, 128, out: 128, 128
     '''
+    x = self.pad(x)
     x = self.c_1(x)
     x = self.leakyrelu(x)
-    
+
     x = self.c_2(x)
     x = self.bn_2(x)
     x = self.leakyrelu(x)
@@ -65,7 +66,7 @@ class Generator(nn.Module):
     self.bn_8 = nn.BatchNorm1d(32)
     self.dc_4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     self.relu = nn.ReLU()
-    self.tanh = nn.Tanh()
+    self.tanh = nn.Hardtanh(min_val=0, max_val=1)
     
   def forward(self, z, y):
     '''
@@ -91,6 +92,7 @@ class Generator(nn.Module):
     
     x = self.dc_4(x)
     x = self.tanh(x)
+    x = torch.round(x)
     return x
     
   
@@ -149,5 +151,10 @@ if __name__ == '__main__':
   encoder = Encoder()
   generator = Generator()
   discriminator = Discriminator()
+
+  z_hat = encoder(x, y)
+  x_tilde = generator(z, y)
+  result = discriminator(x, z, y)
+
   # out = NN(x, y, z)
   # print(out)

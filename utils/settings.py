@@ -56,7 +56,7 @@ PRESET = [
       'text': '#3d9410',
       'image': '#43f013',
       'headline': '#e6f11b',
-      'background': '#561a49',
+      'background': '#ffffff',
     }
   }
 ]
