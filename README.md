@@ -22,8 +22,7 @@
 ├── fonts
 ├── models
 │   ├── GoogleNews-vectors-negative300.bin
-│   ├── Instr.md
-│   └── multimodal.pt
+│   └── Instr.md
 ├── utils
 ├── layout_gn.py
 ├── multi_en.py
@@ -51,3 +50,18 @@
 `train.py` 网络训练（未完成）
 
 `playground.py` 测试用的模块
+
+
+## 目前的示例
+
+原始数据集中的布局(fashion_0030)：
+
+![fashion_0030.png](./assets/fashion_0030.png)
+
+网格化后(60*45)的布局:
+
+![fashion_0030_grid.png](./assets/fashion_0030_grid.png)
+
+从初始网络中生成的 Tensor 转换后的布局：
+
+![recover_grid.png](./assets/recover_grid.png)
