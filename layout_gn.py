@@ -3,13 +3,11 @@ import torch.nn as nn
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-class LGN(nn.Module):
+class Encoder(nn.Module):
   def __init__(self):
-    super(LGN, self).__init__()
-    
-    # Layout Encoder
-    self.pad_1 = nn.ZeroPad2d(padding=(9, 10, 2, 2, 0, 0))
-    self.pad_2 = nn.ZeroPad2d(padding=(9, 10, 2, 2, 0, 0))
+    super(Encoder, self).__init__()
+  
+    self.pad = nn.ZeroPad2d(padding=(9, 10, 2, 2, 0, 0))
     self.c_1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
     self.c_2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
     self.bn_2 = nn.BatchNorm1d(16)
@@ -22,32 +20,8 @@ class LGN(nn.Module):
     self.flatten = nn.Flatten()
     self.leakyrelu = nn.LeakyReLU()
     
-    # Layout Generator
-    self.fc_1 = nn.Linear(in_features=256, out_features=8192)
-    self.bn_5 = nn.BatchNorm1d(4)
-    self.dc_1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0))
-    self.bn_6 = nn.BatchNorm1d(8)
-    self.dc_2 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
-    self.bn_7 = nn.BatchNorm1d(16)
-    self.dc_3 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
-    self.bn_8 = nn.BatchNorm1d(32)
-    self.dc_4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
-    self.relu = nn.ReLU()
-    self.tanh = nn.Tanh()
-    
-    # Layout Discriminator
-    self.c_7 = nn.Conv2d(in_channels=131, out_channels=64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
-    self.c_8 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
-    self.bn_9 = nn.BatchNorm1d(16)
-    self.c_9 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
-    self.bn_10 = nn.BatchNorm1d(8)
-    self.c_10 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
-    self.bn_11 = nn.BatchNorm1d(4)
-    self.c_11 = nn.Conv2d(in_channels=512, out_channels=128, kernel_size=(4, 4), stride=(1, 1))
-    self.fc_2 = nn.Linear(in_features=256, out_features=1)
-    
-    
-  def encoder(self, x, y):
+
+  def forward(self, x, y):
     '''
     In: 64*64*3, 128, out: 128, 128
     '''
@@ -70,14 +44,30 @@ class LGN(nn.Module):
     y = y.repeat(1, 4, 4)
     x = torch.cat((x, y), dim=0)
     
-    out_1 = self.c_5(x)
-    out_2 = self.c_6(x)
-    out_1 = out_1.squeeze(1).squeeze(1)
-    out_2 = out_2.squeeze(1).squeeze(1)
-    return out_1, out_2
+    mean = self.c_5(x)
+    std = self.c_6(x)
+    mean = mean.squeeze(1).squeeze(1)
+    std = std.squeeze(1).squeeze(1)
+    return mean, std
+   
+
+class Generator(nn.Module):
+  def __init__(self):
+    super(Generator, self).__init__()
+  
+    self.fc_1 = nn.Linear(in_features=256, out_features=8192)
+    self.bn_5 = nn.BatchNorm1d(4)
+    self.dc_1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0))
+    self.bn_6 = nn.BatchNorm1d(8)
+    self.dc_2 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+    self.bn_7 = nn.BatchNorm1d(16)
+    self.dc_3 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+    self.bn_8 = nn.BatchNorm1d(32)
+    self.dc_4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+    self.relu = nn.ReLU()
+    self.tanh = nn.Tanh()
     
-    
-  def generator(self, z, y):
+  def forward(self, z, y):
     '''
     In: 128, 128, out: 64*64*3
     '''
@@ -102,9 +92,24 @@ class LGN(nn.Module):
     x = self.dc_4(x)
     x = self.tanh(x)
     return x
+    
   
+class Discriminator(nn.Module):
+  def __init__(self):
+    super(Discriminator, self).__init__()
+
+    self.c_7 = nn.Conv2d(in_channels=131, out_channels=64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+    self.c_8 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+    self.bn_9 = nn.BatchNorm1d(16)
+    self.c_9 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+    self.bn_10 = nn.BatchNorm1d(8)
+    self.c_10 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+    self.bn_11 = nn.BatchNorm1d(4)
+    self.c_11 = nn.Conv2d(in_channels=512, out_channels=128, kernel_size=(4, 4), stride=(1, 1))
+    self.fc_2 = nn.Linear(in_features=256, out_features=1)
   
-  def discriminator(self, x, z, y):
+    
+  def forward(self, x, z, y):
     '''
     In: 64*64*3, 128, 128, out: 1
     '''
@@ -135,21 +140,14 @@ class LGN(nn.Module):
     x = self.fc_2(x)
     x = self.leakyrelu(x)
     return x
-    
-  
-  
-  def forward(self, x, y, z):
-    x = self.pad_1(x)
-    out_1, out_2 = self.encoder(x, y)
-    out_3 = self.generator(z, y)
-    out_4 = self.discriminator(x, z, y)
-    return out_1, out_2, out_3, out_4
   
   
 if __name__ == '__main__':
   x = torch.rand((3, 60, 45))
   y = torch.rand((128))
   z = torch.rand((128))
-  NN = LGN()
-  out = NN(x, y, z)
-  print(out)
+  encoder = Encoder()
+  generator = Generator()
+  discriminator = Discriminator()
+  # out = NN(x, y, z)
+  # print(out)

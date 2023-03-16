@@ -3,23 +3,10 @@ import torch
 import xml.etree.ElementTree as ET
 from torch.utils.data import Dataset
 
-MAGAZINE_TAG = {
-  'text': [0, 0, 1],
-  'image': [0, 1, 0],
-  'headline': [0, 1, 1],
-  'text-over-image': [1, 0, 0],
-  'headline-over-image': [1, 0, 1],
-  'background': [1, 1, 0],
-}
-
-LAYER = {
-  'text-over-image': 2,
-  'headline-over-image': 2,
-  'text': 1,
-  'image': 1,
-  'headline': 1,
-  'background': 0,
-}
+'''
+Self Created Imports
+'''
+from settings import MAGAZINE_TAG, LAYER
 
 
 class MagazineData(Dataset):

@@ -2,69 +2,20 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import torch
 
+'''
+Self Created Imports
+'''
 from utils.read_data import MagazineData, layout_to_tensor
-
-PALLATE = [
-  '#6999eb',
-  '#7ff8d1',
-  '#3d9410',
-  '#43f013',
-  '#e6f11b',
-  '#561a49',
-  '#d4cf9e',
-  '#b74672',
-  '#b0708f',
-  '#46261a',
-  '#021939',
-  '#dc1885',
-  '#b9ed7d',
-  '#18f9a0',
-  '#0302cd',
-  '#ce04dd',
-  '#be4619',
-  '#8e52bc',
-  '#c53464',
-  '#b1be36'
-]
-
-LAYER = {
-  'text-over-image': 2,
-  'headline-over-image': 2,
-  'text': 1,
-  'image': 1,
-  'headline': 1,
-  'background': 0,
-}
-
-PRESET = [
-  {
-    'dataset_name': 'magazine',
-    'preset': {
-      'text-over-image': '#6999eb',
-      'headline-over-image': '#7ff8d1',
-      'text': '#3d9410',
-      'image': '#43f013',
-      'headline': '#e6f11b',
-      'background': '#561a49',
-    }
-  }
-]
-
-ORIGINAL_SIZE = [225, 300]
-GRID_SIZE = [45, 60]
-BLOCK_SIZE = [5, 5]
-
-MAGAZINE_TAG = {
-  'text': [0, 0, 1],
-  'image': [0, 1, 0],
-  'headline': [0, 1, 1],
-  'text-over-image': [1, 0, 0],
-  'headline-over-image': [1, 0, 1],
-  'background': [1, 1, 0],
-}
+from utils.settings import LAYER, PRESET, ORIGINAL_SIZE, BLOCK_SIZE, MAGAZINE_TAG
 
 
-def recover_layout_from_label_name(label_name:str, screen_size:list[int, int]=[225, 300], root_dir='dataset', layout_folder='layout', dataset_name=''):
+def recover_layout_from_label_name(
+  label_name:str,
+  screen_size:list[int, int]=[225, 300],
+  root_dir='dataset',
+  layout_folder='layout',
+  dataset_name=''
+):
 
   '''
   Recover layout image from label_name in a specific dataset.
@@ -140,6 +91,7 @@ def recover_grid_layout_from_tensor(tensor:torch.Tensor, root_dir='dataset', lay
   img = Image.new('RGBA', ORIGINAL_SIZE, 'white')
 
   preset = PRESET[0]['preset']
+  px, py = BLOCK_SIZE
 
   for y in range(0, tensor.shape[1]):
     for x in range(0, tensor.shape[2]):
@@ -151,8 +103,8 @@ def recover_grid_layout_from_tensor(tensor:torch.Tensor, root_dir='dataset', lay
       for key, val in MAGAZINE_TAG.items():
         if val == block_mask:
           color = preset[key]
-      block = Image.new('RGBA', (5, 5), color)
-      img.paste(block, (x * 5, y * 5))
+      block = Image.new('RGBA', (px, py), color)
+      img.paste(block, (x * px, y * py))
 
   img.save(os.path.join(root_dir, layout_folder, 'recover_grid.png'))
   print(os.path.join(root_dir, layout_folder, 'recover_grid.png'))
